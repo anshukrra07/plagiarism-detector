@@ -8,7 +8,8 @@
 import { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 
-const API = 'http://localhost:8000';
+const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000' 
+
 
 const CLUSTER_COLORS = [
   '#e74c3c', '#8e44ad', '#2980b9', '#16a085',
@@ -126,14 +127,14 @@ function BatchUploadPanel({ onDone }) {
           const form = new FormData();
           form.append('file', file);
           form.append('auto_fetch_corpus', 'false');
-          const res = await fetch(`${API}/check/file`, { method: 'POST', body: form });
+          const res = await fetch(`${BASE_URL}/check/file`, { method: 'POST', body: form });
           if (!res.ok) throw new Error(`Failed to extract ${file.name}`);
           const data = await res.json();
           return { ...s, resolvedText: (data.sentences || []).map(x => x.sentence).join(' ') };
         }
       }));
 
-      const res = await fetch(`${API}/compare/batch`, {
+      const res = await fetch(`${BASE_URL}/compare/batch`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -519,7 +520,7 @@ export default function NetworkGraph({ threshold = 0.70 }) {
   // Fetch pairs from MongoDB
   useEffect(() => {
     setLoading(true);
-    fetch(`${API}/pairs?threshold=${threshold}`)
+    fetch(`${BASE_URL}/pairs?threshold=${threshold}`)
       .then(r => r.json())
       .then(data => { setPairs(data.pairs || []); setLoading(false); })
       .catch(e => { setError(e.message); setLoading(false); });
@@ -702,7 +703,7 @@ export default function NetworkGraph({ threshold = 0.70 }) {
             </button>
             <button onClick={async () => {
               if (!window.confirm('Clear all stored pairs? This resets the graph.')) return;
-              await fetch(`${API}/pairs`, { method: 'DELETE' });
+              await fetch(`${BASE_URL}/pairs`, { method: 'DELETE' });
               setPairs([]); setRings([]); setNodeClusterMap({});
             }} style={{ border: '1px solid #fca5a5', background: '#fef2f2', borderRadius: 6, padding: '4px 12px', cursor: 'pointer', fontSize: 12, color: '#dc2626' }}>
               🗑 Clear pairs

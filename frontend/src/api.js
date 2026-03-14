@@ -1,4 +1,4 @@
-const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
+const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000' 
 
 async function fetchJson(path, options = {}, timeoutMs = 15000) {
   const controller = new AbortController();
