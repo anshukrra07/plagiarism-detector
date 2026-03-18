@@ -8,7 +8,6 @@ import numpy as np
 import re
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from transformers import pipeline
 from dataclasses import dataclass, field
 
 
@@ -49,6 +48,7 @@ _nli_pipe = None
 def _get_nli():
     global _nli_pipe
     if _nli_pipe is None:
+        from transformers import pipeline
         print("[detector] Loading NLI model for Layer 3 (first time only)...")
         _nli_pipe = pipeline(
             "zero-shot-classification",

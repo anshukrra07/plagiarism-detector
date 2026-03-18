@@ -5,12 +5,6 @@ import re
 import fitz          # PyMuPDF — PDF extraction
 from docx import Document
 from langdetect import detect
-import nltk
-
-# Download required NLTK data on first run
-nltk.download("punkt", quiet=True)
-nltk.download("punkt_tab", quiet=True)
-from nltk.tokenize import sent_tokenize
 
 
 # ── Main entry point ──────────────────────────────────────────────────────────
@@ -100,7 +94,7 @@ def _split_sentences(text: str) -> list[str]:
     - Very short sentences (< 5 words) — usually headers or page numbers
     - Citation-only sentences (e.g. "[1]", "(Smith, 2020)")
     """
-    raw_sentences = sent_tokenize(text)
+    raw_sentences = _sent_tokenize(text)
     cleaned = []
     for s in raw_sentences:
         s = s.strip()
@@ -112,6 +106,33 @@ def _split_sentences(text: str) -> list[str]:
             continue
         cleaned.append(s)
     return cleaned
+
+
+def _sent_tokenize(text: str) -> list[str]:
+    """
+    Lazy NLTK tokenization so app startup does not block on tokenizer downloads.
+    Falls back to regex splitting if punkt is unavailable.
+    """
+    try:
+        import nltk
+        try:
+            nltk.data.find("tokenizers/punkt")
+        except LookupError:
+            try:
+                nltk.download("punkt", quiet=True)
+            except Exception:
+                pass
+        try:
+            nltk.data.find("tokenizers/punkt_tab")
+        except LookupError:
+            try:
+                nltk.download("punkt_tab", quiet=True)
+            except Exception:
+                pass
+        from nltk.tokenize import sent_tokenize
+        return sent_tokenize(text)
+    except Exception:
+        return [s for s in re.split(r"(?<=[.!?])\s+", text) if s.strip()]
 
 
 def _is_citation_only(sentence: str) -> bool:
